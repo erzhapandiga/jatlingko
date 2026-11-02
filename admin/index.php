@@ -14,25 +14,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
   // Penyelarasan variabel koneksi PDO
   if (!isset($con)) {
-      if (isset($pdo)) { $con =$pdo; }
-      elseif (isset($conn)) { $con =$conn; }
-      elseif (isset($koneksi)) { $con =$koneksi; }
+      if (isset($pdo)) { $con = $pdo; }
+      elseif (isset($conn)) { $con = $conn; }
+      elseif (isset($koneksi)) { $con = $koneksi; }
   }
 
   $user = trim($_POST['username'] ?? '');
   $pass = trim($_POST['pass'] ?? '');
 
-  if ($user === '' || $pass === '') {$error = 'Username dan password wajib diisi.';
+  if ($user === '' || $pass === '') {
+      $error = 'Username dan password wajib diisi.';
   } else {
-    // Menggunakan PDO prepared statement
-    $stmt =$con->prepare("SELECT id_admin, username, fullname, password FROM t_admin WHERE username = ?");
+    // Menggunakan PDO prepared statement dengan mengunci mutlak ke pemilosdb.t_admin
+    $stmt = $con->prepare("SELECT id_admin, username, fullname, password FROM pemilosdb.t_admin WHERE username = ?");
     $stmt->execute([$user]);
-    $admin =$stmt->fetch(PDO::FETCH_ASSOC);
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($admin) {
-      if (password_verify($pass,$admin['password'])) {
-        $_SESSION['id_admin'] =$admin['id_admin'];
-        $_SESSION['user']     =$admin['fullname'];
+      if (password_verify($pass, $admin['password'])) {
+        $_SESSION['id_admin'] = $admin['id_admin'];
+        $_SESSION['user']     = $admin['fullname'];
         header('location: ./dashboard.php');
         exit;
       } else {
@@ -362,3 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         Pastikan kredensial tidak dibagikan kepada pihak yang tidak berkepentingan.
       </div>
     </div>
+  </div>
+</body>
+
+</html>
