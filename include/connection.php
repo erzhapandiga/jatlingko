@@ -4,8 +4,7 @@ $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
 $port = getenv('DB_PORT') ?: 4000;
 
-// Ubah nama database jadi 'sys' sesuai dashboard TiDB Cloud kamu
-$db   = 'sys'; 
+$db   = getenv('DB_NAME') ?: 'pemilosdb';
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
