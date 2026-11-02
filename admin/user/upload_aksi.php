@@ -30,8 +30,10 @@ if (isset($_FILES[$input_file_name]['name']) && !empty($_FILES[$input_file_name]
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $con->beginTransaction();
-            $stmt = $con->prepare("INSERT INTO t_user (id_user, fullname, id_kelas, jk, pemilih) VALUES (?, ?, ?, ?, 'Y') 
-                                   ON DUPLICATE KEY UPDATE fullname = VALUES(fullname), id_kelas = VALUES(id_kelas), jk = VALUES(jk)");
+            
+            // Perbaikan: Menggunakan skema pemilosdb.t_user, kolom 'nama', dan kolom 'kelas' langsung
+            $stmt = $con->prepare("INSERT INTO pemilosdb.t_user (id_user, nama, kelas, jk) VALUES (?, ?, ?, ?) 
+                                   ON DUPLICATE KEY UPDATE nama = VALUES(nama), kelas = VALUES(kelas), jk = VALUES(jk)");
 
             // Looping data mulai baris ke-3 (sesuaikan dengan struktur baris Excel Anda)
             for ($i = 3; $i <= count($sheetData); $i++) {

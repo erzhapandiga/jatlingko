@@ -18,12 +18,12 @@ if(isset($_POST['add_user'])) {
    $jk   = trim($_POST['jk'] ?? '');
    $kls  = trim($_POST['kelas'] ?? '');
 
-   // Cek apakah NIS sudah terdaftar menggunakan PDO
-   $get_id = $con->prepare("SELECT COUNT(*) FROM t_user WHERE id_user = ?");
+   // Cek apakah NIS sudah terdaftar dengan skema pemilosdb
+   $get_id = $con->prepare("SELECT COUNT(*) FROM pemilosdb.t_user WHERE id_user = ?");
    $get_id->execute([$nis]);
    $numb = $get_id->fetchColumn();
 
-   // Validasi Form Kosong (termasuk nisn)
+   // Validasi Form Kosong
    if($nis == '' || $nisn == '' || $nama == '' || $jk == '' || $kls == '') {
       echo '<script type="text/javascript">alert("Semua form harus terisi");</script>';
    } else if(!preg_match("/^[a-zA-z \'.]*$/",$nama)) {
@@ -31,8 +31,8 @@ if(isset($_POST['add_user'])) {
    } else if($numb > 0){
       echo '<script type="text/javascript">alert("NIS tidak dapat digunakan");window.history.go(-1);</script>';
    } else {
-      // Query Insert ditambah kolom nisn menggunakan PDO
-      $sql = $con->prepare("INSERT INTO t_user(id_user, nisn, fullname, id_kelas, jk) VALUES(?, ?, ?, ?, ?)");
+      // Query Insert disesuaikan dengan kolom 'nama' dan 'kelas' pada skema pemilosdb.t_user
+      $sql = $con->prepare("INSERT INTO pemilosdb.t_user(id_user, nisn, nama, kelas, jk) VALUES(?, ?, ?, ?, ?)");
       $sql->execute([$nis, $nisn, $nama, $kls, $jk]);
 
       header('location: ?page=user');
@@ -71,19 +71,8 @@ if(isset($_POST['add_user'])) {
             <tr>
                 <td> Kelas </td>
                 <td> 
-                    <select name="kelas" required class="form-control">
-                        <option value="">-- Pilih Kelas --</option>
-                        <?php
-                            $kelas_stmt = $con->query("SELECT * FROM t_kelas");
-                            while ($key = $kelas_stmt->fetch(PDO::FETCH_ASSOC)) {
-                        ?>
-                                <option value="<?php echo $key['id_kelas']; ?>">
-                                    <?php echo htmlspecialchars($key['nama_kelas']); ?>
-                                </option>
-                        <?php
-                            }
-                        ?>
-                    </select> </td>
+                    <input class="form-control" type="text" name="kelas" placeholder="Contoh: X PPLG 1" autocomplete='off'/>
+                </td>
             </tr>
             </table>
             <div class="form-group ml-3">
