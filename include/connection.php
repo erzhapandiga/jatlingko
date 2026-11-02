@@ -4,8 +4,8 @@ $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
 $port = getenv('DB_PORT') ?: 4000;
 
-// Hardcode nama database di sini secara langsung supaya tidak salah tangkap
-$db   = 'db-pemilos'; // Ganti jadi 'db_pemilos' jika di TiDB pakai underscore
+// Ubah nama database jadi 'sys' sesuai dashboard TiDB Cloud kamu
+$db   = 'sys'; 
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
