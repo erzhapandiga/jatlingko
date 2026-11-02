@@ -1,15 +1,19 @@
 <?php
-$host = 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com';
-$port = '4000';
-$db   = 'db_pemilos';
-$user = '33GoGFSrwK3DNnF.root';
-$pass = 'Ju4HkZjKlP8Zpq8V';
+$host = getenv('DB_HOST');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$db   = getenv('DB_NAME');
+$port = getenv('DB_PORT') ?: 4000;
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
-    $pdo = new PDO($dsn, $user, $pass);
-    echo "Koneksi ke TiDB Cloud berhasil! 🚀";
+    $options = [
+        PDO::MYSQL_ATTR_SSL_CA => true, // Mengaktifkan SSL
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ];
+    
+    $koneksi = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    echo "Koneksi gagal: " . $e->getMessage();
+    die("Koneksi gagal: " . $e->getMessage());
 }
 ?>
