@@ -4,7 +4,7 @@ error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED);
 
 // Perbaikan path absolut ke root project tempat vendor berada
 require_once __DIR__ . '/../../include/connection.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 // Penyelarasan variabel koneksi PDO
 if (!isset($con)) {
