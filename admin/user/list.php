@@ -45,12 +45,12 @@ if (isset($_GET['cari']) && !empty(trim($_GET['cari']))) {
           $status_condition = " OR pemilosdb.t_pemilih.nis IS NULL";
      }
 
-     // Gabungkan kondisi pencarian aman menggunakan parameter binding dengan awalan pemilosdb
+     // Gabungkan kondisi pencarian aman menggunakan parameter binding dengan awalan pemilosdb (menggunakan t_user.kelas)
      $where_clause = " AND (
           pemilosdb.t_user.fullname LIKE ? 
           OR pemilosdb.t_user.id_user LIKE ? 
           OR pemilosdb.t_user.nisn LIKE ? 
-          OR pemilosdb.t_kelas.nama_kelas LIKE ?
+          OR pemilosdb.t_user.kelas LIKE ?
           $jk_condition
           $status_condition
      )";
@@ -125,10 +125,9 @@ if (isset($_GET['cari']) && !empty(trim($_GET['cari']))) {
                          <?php
                          $no = 1;
 
-                         // Query utama menggunakan PDO Prepared Statement dengan penguncian mutlak ke pemilosdb
-                         $query = "SELECT pemilosdb.t_user.id_user, pemilosdb.t_user.fullname, pemilosdb.t_user.nisn, pemilosdb.t_user.jk, pemilosdb.t_kelas.nama_kelas, pemilosdb.t_pemilih.nis AS status_vote 
+                         // Query utama menggunakan PDO Prepared Statement tanpa JOIN ke t_kelas karena kolom kelas sudah ada di t_user
+                         $query = "SELECT pemilosdb.t_user.id_user, pemilosdb.t_user.fullname, pemilosdb.t_user.nisn, pemilosdb.t_user.jk, pemilosdb.t_user.kelas AS nama_kelas, pemilosdb.t_pemilih.nis AS status_vote 
                               FROM pemilosdb.t_user 
-                              JOIN pemilosdb.t_kelas ON pemilosdb.t_user.id_kelas = pemilosdb.t_kelas.id_kelas 
                               LEFT JOIN pemilosdb.t_pemilih ON pemilosdb.t_user.id_user = pemilosdb.t_pemilih.nis 
                               AND pemilosdb.t_pemilih.periode = ?
                               WHERE 1=1 $where_clause";
