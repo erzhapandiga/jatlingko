@@ -1,37 +1,70 @@
-<form method="post" enctype="multipart/form-data" action="user/proses.php">
-    <h2 class="mt-5 ml-5">Pilih File</h2>
-    <div class="alert alert-danger ml-5 mr-5">
-        Download Template file datanya disini <a target="_blank" href="user/excel/data_siswa.xlsx" > <div class='btn btn-success btn-sm ml-2'> Data Siswa.xlsx </div> </a>
-    </div>
-    <div class="row p-5">
-        <div class="col-md-9">
-            <div class="custom-file shadow-sm">
-                <input type="file" class="custom-file-input" name="berkas_excel" id="customFile" required="Mohon Pilih File">
-                <label class="custom-file-label" for="customFile">Pilih file .xlsx</label>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <input class="btn btn-success" type="submit" value="Import">
-            <button type="button" onclick="window.history.back()" class="btn btn-danger">Kembali</button>
-        </div>
-    </div>
-</form>
-<h4 class='ml-5 mt-2'> Pemberitahuan : </h4>
-    <h5 class='ml-5'>Untuk mengisi data kelas harus memakai kode yang sudah di sediakan </h5>
-        <h6 class='ml-5 mb-2'> <?php 
-            // Penyelarasan koneksi PDO
-            if (!isset($con)) {
-                if (isset($pdo)) { $con = $pdo; }
-                elseif (isset($conn)) { $con = $conn; }
-                elseif (isset($koneksi)) { $con = $koneksi; }
-            }
+<?php
+// Matiin warning agar proses import tetap bersih
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED);
+
+// Hubungkan dengan file koneksi pusat
+require_once '../../include/connection.php';
+require_once '../vendor/autoload.php'; // Sesuaikan path vendor jika diperlukan
+
+// Penyelarasan variabel koneksi PDO
+if (!isset($con)) {
+    if (isset($pdo)) { $con = $pdo; }
+    elseif (isset($conn)) { $con = $conn; }
+    elseif (isset($koneksi)) { $con = $koneksi; }
+}
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$berhasil = 0;
+
+// Periksa apakah file diupload menggunakan input name 'berkas_excel' (atau 'filepegawai' jika mengikuti form lama)
+$input_file_name = isset($_FILES['berkas_excel']) ? 'berkas_excel' : 'filepegawai';
+
+if (isset($_FILES[$input_file_name]['name']) && !empty($_FILES[$input_file_name]['name'])) {
+    $target_file = basename($_FILES[$input_file_name]['name']);
+    
+    if (move_uploaded_file($_FILES[$input_file_name]['tmp_name'], $target_file)) {
+        try {
+            // Load file Excel menggunakan PhpSpreadsheet
+            $spreadsheet = IOFactory::load($target_file);
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $con->beginTransaction();
             
-            $stmt = $con->query("SELECT * FROM t_kelas");
-            while($d = $stmt->fetch(PDO::FETCH_ASSOC)){
-        ?>
-            <?php echo htmlspecialchars($d['id_kelas']); ?> = <?php echo htmlspecialchars($d['nama_kelas']); ?> <br>
-       <?php
+            // Perbaikan: Menggunakan skema pemilosdb.t_user dengan kolom lengkap (termasuk password)
+            $stmt = $con->prepare("INSERT INTO pemilosdb.t_user (nis, id_user, nisn, nama, kelas, jk, password) VALUES (?, ?, ?, ?, ?, ?, ?) 
+                                   ON DUPLICATE KEY UPDATE nisn = VALUES(nisn), nama = VALUES(nama), kelas = VALUES(kelas), jk = VALUES(jk)");
+
+            // Looping data mulai baris ke-3 (sesuaikan dengan struktur baris Excel Anda)
+            for ($i = 3; $i <= count($sheetData); $i++) {
+                $nis   = trim($sheetData[$i]['A'] ?? '');
+                $nisn  = trim($sheetData[$i]['B'] ?? '');
+                $nama  = trim($sheetData[$i]['C'] ?? '');
+                $kelas = trim($sheetData[$i]['D'] ?? '');
+                $jenis = trim($sheetData[$i]['E'] ?? '');
+                $password = md5($nis); // Password default menggunakan md5(nis)
+
+                if ($nis != "" && $nama != "") {
+                    $stmt->execute([$nis, $nis, $nisn, $nama, $kelas, $jenis, $password]);
+                    $berhasil++;
+                }
             }
-       ?> </h6>
-            <h5 class='ml-5'>Contoh :</h5>
-            <img class='ml-5 mb-5' src="user/Capture.PNG" height='200px' alt="Contoh Format">
+
+            $con->commit();
+        } catch (Exception $e) {
+            if ($con->inTransaction()) {
+                $con->rollBack();
+            }
+        }
+
+        // Hapus file fisik yang di-upload setelah selesai diproses
+        if (file_exists($target_file)) {
+            unlink($target_file);
+        }
+    }
+}
+
+// Alihkan halaman kembali ke list / dashboard dengan parameter berhasil
+header("location:../dashboard.php?page=user&pesan=Berhasil");
+exit;
+?>

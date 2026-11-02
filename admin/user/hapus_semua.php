@@ -11,9 +11,9 @@ if (!isset($con)) {
     elseif (isset($koneksi)) { $con = $koneksi; }
 }
 
-// Perintah SQL untuk menghapus seluruh data di tabel t_user menggunakan PDO
+// Perintah SQL untuk menghapus seluruh data di tabel pemilosdb.t_user menggunakan PDO
 try {
-    $sql = $con->exec("DELETE FROM t_user");
+    $sql = $con->exec("DELETE FROM pemilosdb.t_user");
     
     if ($sql !== false) {
           echo '<script>alert("Semua data siswa berhasil dihapus!");window.location="dashboard.php?page=user";</script>';
@@ -21,6 +21,7 @@ try {
           echo '<script>alert("Gagal menghapus data siswa!");window.history.go(-1);</script>';
     }
 } catch (PDOException $e) {
-    echo '<script>alert("Gagal menghapus data siswa!");window.history.go(-1);</script>';
+    echo '<script>alert("Gagal menghapus data siswa: ' . addslashes($e->getMessage()) . '");</script>';
+    echo '<script>window.history.go(-1);</script>';
 }
 ?>
