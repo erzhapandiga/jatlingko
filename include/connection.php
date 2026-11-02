@@ -1,8 +1,9 @@
 <?php
+// Ambil variabel dari environment Render, atau gunakan default
 $host = getenv('DB_HOST');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
-$db   = getenv('DB_NAME') ?: 'db-pemilos'; // Default ke db-pemilos jika environment variable belum ada
+$db   = getenv('DB_NAME') ?: 'db_pemilos'; // Ubah ke 'db-pemilos' jika nama database di TiDB pakai tanda minus
 $port = getenv('DB_PORT') ?: 4000;
 
 try {
