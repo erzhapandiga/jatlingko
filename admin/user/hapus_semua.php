@@ -11,17 +11,23 @@ if (!isset($con)) {
     elseif (isset($koneksi)) { $con = $koneksi; }
 }
 
-// Perintah SQL untuk menghapus seluruh data di tabel pemilosdb.t_user menggunakan PDO
 try {
-    $sql = $con->exec("DELETE FROM pemilosdb.t_user");
-    
-    if ($sql !== false) {
-          echo '<script>alert("Semua data siswa berhasil dihapus!");window.location="dashboard.php?page=user";</script>';
-    } else {
-          echo '<script>alert("Gagal menghapus data siswa!");window.history.go(-1);</script>';
-    }
+    // Matikan foreign key check sementara jika ada relasi tabel, lalu hapus data
+    $con->exec("SET FOREIGN_KEY_CHECKS = 0");
+    $affected_rows = $con->exec("DELETE FROM pemilosdb.t_user");
+    $con->exec("SET FOREIGN_KEY_CHECKS = 1");
+
+    // Jika perintah sukses dijalankan
+    echo '<script>alert("Semua data siswa berhasil dihapus! (Total terhapus: ' . $affected_rows . ' baris)"); window.location="dashboard.php?page=user";</script>';
+    exit;
+
 } catch (PDOException $e) {
-    echo '<script>alert("Gagal menghapus data siswa: ' . addslashes($e->getMessage()) . '");</script>';
-    echo '<script>window.history.go(-1);</script>';
+    // Aktifkan kembali foreign key jika terjadi error
+    $con->exec("SET FOREIGN_KEY_CHECKS = 1");
+    
+    // Tampilkan pesan error aslinya agar ketahuan kendala database-nya
+    $error_msg = addslashes($e->getMessage());
+    echo '<script>alert("Gagal menghapus data siswa! Error: ' . $error_msg . '"); window.history.go(-1);</script>';
+    exit;
 }
 ?>
