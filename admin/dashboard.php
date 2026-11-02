@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 ob_start();
 session_start();
 
@@ -13,7 +17,6 @@ require_once '../include/connection.php';
 // Pastikan variabel koneksi global siap
 if (!isset($con) && isset($conn)) { $con = $conn; }
 if (!isset($con) && isset($koneksi)) { $con = $koneksi; }
-// Fallback jika menggunakan $pdo
 if (!isset($con) && isset($pdo)) { $con = $pdo; }
 ?>
 <!DOCTYPE html>
@@ -236,12 +239,12 @@ if (!isset($con) && isset($pdo)) { $con = $pdo; }
                           exit;
                           break;
                       default:
-                          // Menggunakan PDO aman untuk TiDB Cloud & Vercel
-                          $stmt_user = $con->query("SELECT COUNT(*) AS total_user FROM t_user");
+                          // KUNCI MUTLAK KE PEMILOSDB (BARIS 240)
+                          $stmt_user = $con->query("SELECT COUNT(*) AS total_user FROM pemilosdb.t_user");
                           $data_user = $stmt_user->fetch();
                           $total_user = $data_user['total_user'] ?? 0;
 
-                          $stmt_suara = $con->query("SELECT SUM(suara) AS total_suara FROM t_kandidat");
+                          $stmt_suara = $con->query("SELECT SUM(suara) AS total_suara FROM pemilosdb.t_kandidat");
                           $data_suara = $stmt_suara->fetch();
                           $total_suara = $data_suara['total_suara'] ?? 0;
                           ?>
@@ -363,7 +366,7 @@ if (!isset($con) && isset($pdo)) { $con = $pdo; }
         $dpn = date('Y') + 1;
         $periode = $thn . '/' . $dpn;
         
-        $stmt_kan = $con->prepare("SELECT nama_calon, suara FROM t_kandidat WHERE periode = ?");
+        $stmt_kan = $con->prepare("SELECT nama_calon, suara FROM pemilosdb.t_kandidat WHERE periode = ?");
         $stmt_kan->execute([$periode]);
         $kandidat_list = $stmt_kan->fetchAll();
 
