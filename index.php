@@ -24,18 +24,26 @@ if (isset($_POST['submit'])) {
     if (empty($nis)) {
         $error = "AKUN / NIS / NISN tidak boleh kosong!";
     } else {
-        $stmt = $con->prepare("SELECT * FROM t_user WHERE id_user = ? OR nisn = ?");
-        $stmt->execute([$nis, $nis]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (isset($con) && $con) {
+            try {
+                $stmt = $con->prepare("SELECT * FROM t_user WHERE id_user = ? OR nisn = ?");
+                $stmt->execute([$nis, $nis]);
+                $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($data) {
-            $_SESSION['siswa'] = $data['id_user'];
-            $_SESSION['fullname'] = $data['fullname'];
-            
-            header('location: vote.php');
-            exit;
+                if ($data) {
+                    $_SESSION['siswa'] = $data['id_user'];
+                    $_SESSION['fullname'] = $data['fullname'];
+                    
+                    header('location: vote.php');
+                    exit;
+                } else {
+                    $error = "AKUN / NIS / NISN tidak terdaftar di dalam sistem!";
+                }
+            } catch (PDOException $e) {
+                $error = "Terjadi kesalahan pada database: " . $e->getMessage();
+            }
         } else {
-            $error = "AKUN / NIS / NISN tidak terdaftar di dalam sistem!";
+            $error = "Koneksi database belum terhubung dengan benar.";
         }
     }
 }
@@ -139,11 +147,18 @@ if (isset($_POST['submit'])) {
             
             <div class="flex justify-center gap-4 overflow-x-auto pb-2 no-scrollbar">
                 <?php
-                // Mengambil data kandidat dari database menggunakan PDO
-                $stmt_kan = $con->query("SELECT * FROM t_kandidat");
-                $kandidat_rows = $stmt_kan ? $stmt_kan->fetchAll(PDO::FETCH_ASSOC) : [];
+                $kandidat_rows = [];
                 $js_paslon = [];
                 $idx = 0;
+
+                if (isset($con) && $con) {
+                    try {
+                        $stmt_kan = $con->query("SELECT * FROM t_kandidat");
+                        $kandidat_rows = $stmt_kan ? $stmt_kan->fetchAll(PDO::FETCH_ASSOC) : [];
+                    } catch (PDOException $e) {
+                        $kandidat_rows = [];
+                    }
+                }
 
                 if (count($kandidat_rows) > 0) {
                     foreach ($kandidat_rows as $row) {
@@ -151,7 +166,6 @@ if (isset($_POST['submit'])) {
                         $fotoPath = !empty($fotoFile) ? 'assets/img/kandidat/' . $fotoFile : 'images/default.png';
                         $labelPaslon = isset($row['nama_calon']) ? $row['nama_calon'] : 'Paslon ' . ($idx + 1);
                         
-                        // Simpan untuk dipakai di modal popup JS nanti
                         $js_paslon[] = "{ src: '" . htmlspecialchars($fotoPath, ENT_QUOTES) . "', label: '" . htmlspecialchars($labelPaslon, ENT_QUOTES) . "' }";
                 ?>
                 <!-- Looping Paslon -->
@@ -165,7 +179,7 @@ if (isset($_POST['submit'])) {
                         $idx++;
                     }
                 } else {
-                    echo '<p class="text-slate-500 text-xs text-center w-full py-4 border border-slate-700 border-dashed rounded-lg">Belum ada data kandidat.</p>';
+                    echo '<p class="text-slate-500 text-xs text-center w-full py-4 border border-slate-700 border-dashed rounded-lg">Belum ada data kandidat atau koneksi database bermasalah.</p>';
                 }
                 ?>
             </div>
@@ -188,11 +202,7 @@ if (isset($_POST['submit'])) {
         &copy; 2026 E-Voting OSIS SMK Metland Cibitung &middot; Supported by SIACI Network
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL & POPUP SECTION (HIDDEN BY DEFAULT)  -->
-    <!-- ========================================== -->
-
-    <!-- POPUP PENGUMUMAN OTOMATIS -->
+    <!-- MODAL & POPUP SECTION -->
     <div id="evWelcomePopup" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
         <div class="relative bg-slate-800 p-2 rounded-2xl shadow-2xl border border-slate-600 max-w-lg w-full transform transition-transform duration-300 scale-100">
             <button type="button" onclick="tutupPopupGlobal()" class="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full font-bold shadow-lg flex items-center justify-center transition-transform hover:scale-110 z-10">
@@ -202,14 +212,12 @@ if (isset($_POST['submit'])) {
         </div>
     </div>
 
-    <!-- MODAL ZOOM FOTO KANDIDAT -->
     <div id="evPaslonModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-4 transition-opacity duration-300">
         <div class="relative max-w-4xl w-full flex flex-col items-center">
             <div class="relative w-full h-[60vh] md:h-[75vh] flex items-center justify-center mb-6 overflow-hidden bg-black/20 rounded-2xl border border-slate-700/50">
                 <img id="evPaslonModalImg" src="" alt="Foto Kandidat" class="max-h-full max-w-full object-contain transition-transform duration-300">
             </div>
             
-            <!-- Toolbar Zoom & Navigasi -->
             <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 bg-slate-800 p-2.5 rounded-full border border-slate-600 shadow-xl">
                 <button type="button" id="evPrevPaslon" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xs font-bold transition-colors">&#10235; Prev</button>
                 <div class="w-px h-6 bg-slate-600 hidden md:block"></div>
@@ -223,13 +231,9 @@ if (isset($_POST['submit'])) {
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- JAVASCRIPT SECTION                         -->
-    <!-- ========================================== -->
     <script>
-        // --- LOGIKA HITUNG MUNDUR ---
         (function () {
-            var target = new Date('2026-11-28T08:00:00'); // Ganti jadwal disini
+            var target = new Date('2026-11-28T08:00:00');
             function updateCountdown() {
                 var now = new Date();
                 var diff = target - now;
@@ -249,7 +253,6 @@ if (isset($_POST['submit'])) {
             setInterval(updateCountdown, 60000); 
         })();
 
-        // --- LOGIKA TUTUP POPUP PENGUMUMAN ---
         function tutupPopupGlobal() {
             var welcomePopup = document.getElementById('evWelcomePopup');
             if(welcomePopup) {
@@ -261,7 +264,6 @@ if (isset($_POST['submit'])) {
             }
         }
 
-        // Kunci scroll saat popup muncul pertama kali
         document.addEventListener("DOMContentLoaded", function() {
             var welcomePopup = document.getElementById('evWelcomePopup');
             if (welcomePopup && welcomePopup.style.display !== 'none') {
@@ -272,7 +274,6 @@ if (isset($_POST['submit'])) {
             }
         });
 
-        // --- LOGIKA MODAL ZOOM PASLON ---
         (function () {
             var modal = document.getElementById('evPaslonModal');
             var modalImg = document.getElementById('evPaslonModalImg');
@@ -281,7 +282,6 @@ if (isset($_POST['submit'])) {
             var zoomLevel = 1;
             var currentIndex = 0;
             
-            // Mengambil array paslon dari PHP
             var paslonData = [ <?php echo implode(',', $js_paslon); ?> ];
 
             if (!modal || !modalImg) return;
