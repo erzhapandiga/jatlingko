@@ -15,15 +15,15 @@ if (isset($_GET['action'])) {
 
    switch ($_GET['action']) {
       case 'tambah':
-         include('./user/add.php');
+         include __DIR__ . '/tambah.php';
          break;
 
       case 'edit':
-         include('./user/edit.php');
+         include __DIR__ . '/edit.php';
          break;
 
       case 'import':
-         include('./user/import.php');
+         include __DIR__ . '/import.php';
          break;
 
       case 'hapus_semua':
@@ -79,11 +79,11 @@ if (isset($_GET['action'])) {
          break;
 
       default:
-         include('./user/list.php');
+         include __DIR__ . '/list.php';
          break;
    }
 
 } else {
-   include('./user/list.php');
+   include __DIR__ . '/list.php';
 }
 ?>
