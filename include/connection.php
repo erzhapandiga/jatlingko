@@ -2,13 +2,13 @@
 $host = getenv('DB_HOST');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
-$db   = getenv('DB_NAME');
+$db   = getenv('DB_NAME') ?: 'db-pemilos'; // Default ke db-pemilos jika environment variable belum ada
 $port = getenv('DB_PORT') ?: 4000;
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
     
-    // Konfigurasi PDO lengkap dengan jalur sertifikat SSL Linux & Docker
+    // Konfigurasi PDO lengkap dengan jalur sertifikat SSL Linux & Docker di Render
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
