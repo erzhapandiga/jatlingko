@@ -59,6 +59,7 @@ if (isset($_FILES[$input_file_name]['name']) && !empty($_FILES[$input_file_name]
     }
 }
 
-header("location:../dashboard.php?page=user&pesan=Berhasil");
+$dashboardPath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/dashboard.php';
+header("Location: {$dashboardPath}?page=user&pesan=Berhasil");
 exit;
 ?>
