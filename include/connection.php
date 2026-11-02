@@ -1,22 +1,23 @@
 <?php
-// Ambil variabel dari environment Render, atau gunakan default
 $host = getenv('DB_HOST');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
-$db   = getenv('DB_NAME') ?: 'db_pemilos'; // Ubah ke 'db-pemilos' jika nama database di TiDB pakai tanda minus
 $port = getenv('DB_PORT') ?: 4000;
+
+// Hardcode nama database di sini secara langsung supaya tidak salah tangkap
+$db   = 'db-pemilos'; // Ganti jadi 'db_pemilos' jika di TiDB pakai underscore
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
     
-    // Konfigurasi PDO lengkap dengan jalur sertifikat SSL Linux & Docker di Render
+    // Konfigurasi PDO dengan SSL untuk TiDB Cloud di Render
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
         PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
     ];
     
-    // Fallback otomatis jika dijalankan secara lokal di XAMPP (offline)
+    // Fallback untuk XAMPP lokal
     if (empty($host)) {
         $host = '127.0.0.1';
         $user = 'root';
