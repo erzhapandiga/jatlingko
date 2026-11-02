@@ -2,9 +2,9 @@
 // Matiin warning agar proses import tetap bersih
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED);
 
-// Perbaikan: Menggunakan path absolut berbasis __DIR__ agar file koneksi selalu ketemu
+// Perbaikan path absolut ke root project tempat vendor berada
 require_once __DIR__ . '/../../include/connection.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Penyelarasan variabel koneksi PDO
 if (!isset($con)) {
@@ -17,7 +17,6 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 $berhasil = 0;
 
-// Periksa apakah file diupload menggunakan input name 'berkas_excel' atau 'filepegawai'
 $input_file_name = isset($_FILES['berkas_excel']) ? 'berkas_excel' : 'filepegawai';
 
 if (isset($_FILES[$input_file_name]['name']) && !empty($_FILES[$input_file_name]['name'])) {
