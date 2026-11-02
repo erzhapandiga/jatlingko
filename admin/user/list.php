@@ -45,9 +45,9 @@ if (isset($_GET['cari']) && !empty(trim($_GET['cari']))) {
           $status_condition = " OR pemilosdb.t_pemilih.nis IS NULL";
      }
 
-     // Gabungkan kondisi pencarian aman menggunakan parameter binding dengan awalan pemilosdb (menggunakan t_user.kelas)
+     // Gabungkan kondisi pencarian aman menggunakan parameter binding dengan awalan pemilosdb
      $where_clause = " AND (
-          pemilosdb.t_user.fullname LIKE ? 
+          pemilosdb.t_user.nama LIKE ? 
           OR pemilosdb.t_user.id_user LIKE ? 
           OR pemilosdb.t_user.nisn LIKE ? 
           OR pemilosdb.t_user.kelas LIKE ?
@@ -125,8 +125,8 @@ if (isset($_GET['cari']) && !empty(trim($_GET['cari']))) {
                          <?php
                          $no = 1;
 
-                         // Query utama menggunakan PDO Prepared Statement tanpa JOIN ke t_kelas karena kolom kelas sudah ada di t_user
-                         $query = "SELECT pemilosdb.t_user.id_user, pemilosdb.t_user.fullname, pemilosdb.t_user.nisn, pemilosdb.t_user.jk, pemilosdb.t_user.kelas AS nama_kelas, pemilosdb.t_pemilih.nis AS status_vote 
+                         // Query utama menggunakan PDO Prepared Statement dengan kolom nama dan kelas langsung dari t_user
+                         $query = "SELECT pemilosdb.t_user.id_user, pemilosdb.t_user.nama, pemilosdb.t_user.nisn, pemilosdb.t_user.jk, pemilosdb.t_user.kelas AS nama_kelas, pemilosdb.t_pemilih.nis AS status_vote 
                               FROM pemilosdb.t_user 
                               LEFT JOIN pemilosdb.t_pemilih ON pemilosdb.t_user.id_user = pemilosdb.t_pemilih.nis 
                               AND pemilosdb.t_pemilih.periode = ?
@@ -154,7 +154,7 @@ if (isset($_GET['cari']) && !empty(trim($_GET['cari']))) {
                                              <?php echo $no++; ?>
                                         </td>
                                         <td style="padding-left:20px;vertical-align:middle;">
-                                             <span class="text-dark font-weight-bold" style="font-size: 15px;"><?php echo htmlspecialchars($data['fullname']); ?></span><br>
+                                             <span class="text-dark font-weight-bold" style="font-size: 15px;"><?php echo htmlspecialchars($data['nama']); ?></span><br>
                                              <small class="text-muted">NIS: <strong><?php echo htmlspecialchars($data['id_user']); ?></strong> | NISN: <strong><?php echo htmlspecialchars($nisn_val); ?></strong></small>
                                         </td>
                                         <td style="text-align:center;vertical-align:middle;">
