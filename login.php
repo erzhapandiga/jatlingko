@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "NISN tidak boleh kosong!";
     } else {
         try {
-            // Cek data user di database menggunakan PDO Prepared Statement
-            $stmt = $con->prepare("SELECT * FROM t_user WHERE id_user = ? OR nisn = ?");
+            // Cek data user di database dengan mengunci mutlak ke pemilosdb.t_user
+            $stmt = $con->prepare("SELECT * FROM pemilosdb.t_user WHERE id_user = ? OR nisn = ?");
             $stmt->execute([$nisn, $nisn]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "NISN tidak terdaftar di dalam sistem!";
             }
         } catch (PDOException $e) {
-            $error = "Terjadi kesalahan pada database.";
+            $error = "Terjadi kesalahan pada database: " . $e->getMessage();
         }
     }
 }

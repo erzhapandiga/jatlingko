@@ -26,7 +26,8 @@ if (isset($_POST['submit'])) {
     } else {
         if (isset($con) && $con) {
             try {
-                $stmt = $con->prepare("SELECT * FROM t_user WHERE id_user = ? OR nisn = ?");
+                // Dikunci mutlak ke pemilosdb.t_user
+                $stmt = $con->prepare("SELECT * FROM pemilosdb.t_user WHERE id_user = ? OR nisn = ?");
                 $stmt->execute([$nis, $nis]);
                 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -112,6 +113,7 @@ if (isset($_POST['submit'])) {
             <span class="text-slate-300 text-xs font-bold flex items-center gap-1.5 bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700">
                 <i class="far fa-calendar-alt text-blue-400"></i> <span id="ev-countdown">Menghitung jadwal...</span>
             </span>
+
         </div>
 
         <!-- Section: Cara Memulai Pemilihan -->
@@ -153,7 +155,8 @@ if (isset($_POST['submit'])) {
 
                 if (isset($con) && $con) {
                     try {
-                        $stmt_kan = $con->query("SELECT * FROM t_kandidat");
+                        // Dikunci mutlak ke pemilosdb.t_kandidat
+                        $stmt_kan = $con->query("SELECT * FROM pemilosdb.t_kandidat");
                         $kandidat_rows = $stmt_kan ? $stmt_kan->fetchAll(PDO::FETCH_ASSOC) : [];
                     } catch (PDOException $e) {
                         $kandidat_rows = [];
