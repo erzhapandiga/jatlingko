@@ -8,15 +8,15 @@ $port = getenv('DB_PORT') ?: 4000;
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
     
-    // Konfigurasi PDO agar kompatibel dengan SSL TiDB Cloud di Docker
+    // Konfigurasi PDO lengkap dengan jalur sertifikat SSL Linux & Docker
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false, // Mengabaikan verifikasi ketat sertifikat
+        PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
+        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
     ];
     
-    // Cek apakah variabel environment ada isinya
+    // Fallback otomatis jika dijalankan secara lokal di XAMPP (offline)
     if (empty($host)) {
-        // Fallback untuk local XAMPP jika sedang dijalankan offline
         $host = '127.0.0.1';
         $user = 'root';
         $pass = '';
