@@ -18,7 +18,7 @@ if(isset($_POST['add_user'])) {
    $jk   = trim($_POST['jk'] ?? '');
    $kls  = trim($_POST['kelas'] ?? '');
 
-   // Cek apakah NIS (id_user) sudah terdaftar dengan skema pemilosdb
+   // Cek apakah NIS sudah terdaftar dengan skema pemilosdb
    $get_id = $con->prepare("SELECT COUNT(*) FROM pemilosdb.t_user WHERE id_user = ?");
    $get_id->execute([$nis]);
    $numb = $get_id->fetchColumn();
@@ -31,9 +31,9 @@ if(isset($_POST['add_user'])) {
    } else if($numb > 0){
       echo '<script type="text/javascript">alert("NIS tidak dapat digunakan");window.history.go(-1);</script>';
    } else {
-      // Query Insert menggunakan id_user, nisn, nama, kelas, jk dengan skema pemilosdb
-      $sql = $con->prepare("INSERT INTO pemilosdb.t_user(id_user, nisn, nama, kelas, jk) VALUES(?, ?, ?, ?, ?)");
-      $sql->execute([$nis, $nisn, $nama, $kls, $jk]);
+      // Perbaikan: Menyertakan kolom nis dan id_user sekaligus untuk mencegah error 1364
+      $sql = $con->prepare("INSERT INTO pemilosdb.t_user(nis, id_user, nisn, nama, kelas, jk) VALUES(?, ?, ?, ?, ?, ?)");
+      $sql->execute([$nis, $nis, $nisn, $nama, $kls, $jk]);
 
       header('location: ?page=user');
       exit;
